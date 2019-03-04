@@ -15,9 +15,7 @@ func main() {
 		panic("Only Version 3 files supported")
 	}
 
-	var zm ZMachine
-	zm.Initialize(buffer, header)
-
+	zm := New(buffer, header)
 	for !zm.done {
 		zm.InterpretInstruction()
 	}

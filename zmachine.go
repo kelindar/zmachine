@@ -58,6 +58,7 @@ func NewStack() *ZStack {
 	return s
 }
 
+// ZMachine represents a VM.
 type ZMachine struct {
 	ip         uint32
 	header     ZHeader
@@ -67,6 +68,20 @@ type ZMachine struct {
 	done       bool
 	buffer     []byte
 }
+
+// New creates a new Z-Machine
+func New(buffer []uint8, header ZHeader) (zm *ZMachine) {
+	zm.buf = buffer
+	zm.header = header
+	zm.ip = uint32(header.ip)
+	zm.stack = NewStack()
+	return
+}
+
+// Load loads a Z-Machine from file
+/*func Load(file []byte) (zm *ZMachine) {
+	binary.Marshal
+}*/
 
 type ZFunction func(*ZMachine, []uint16, uint16)
 type ZFunction1Op func(*ZMachine, uint16)
@@ -446,7 +461,7 @@ func (zm *ZMachine) GetParentObject(objectIndex uint16) uint16 {
 	return uint16(zm.buf[objectEntryAddress+OBJECT_PARENT_INDEX])
 }
 
-// Unlink object from its parent
+// UnlinkObject unlinks object from its parent
 func (zm *ZMachine) UnlinkObject(objectIndex uint16) {
 	objectEntryAddress := zm.GetObjectEntryAddress(objectIndex)
 	currentParentIndex := uint16(zm.buf[objectEntryAddress+OBJECT_PARENT_INDEX])
@@ -556,7 +571,7 @@ func ZCall(zm *ZMachine, args []uint16, numArgs uint16) {
 	}
 }
 
-//  storew array word-index value
+// ZStoreW stores array word-index value
 func ZStoreW(zm *ZMachine, args []uint16, numArgs uint16) {
 
 	address := uint32(args[0] + args[1]*2)
@@ -1343,15 +1358,6 @@ func (zm *ZMachine) EncodeText(txt string) uint32 {
 	return (uint32(encodedWords[0]) << 16) | uint32(encodedWords[1])
 }
 
-func (zm *ZMachine) Initialize(buffer []uint8, header ZHeader) {
-	zm.buf = buffer
-	zm.header = header
-	zm.ip = uint32(header.ip)
-	zm.stack = NewStack()
-
-	//zm.TestDictionary()
-}
-
 // Return DICT_NOT_FOUND (= 0) if not found
 // Address in dictionary otherwise
 func (zm *ZMachine) FindInDictionary(str string) uint16 {
@@ -1405,8 +1411,7 @@ func (zm *ZMachine) PrintZChar(ch uint16) {
 	} // else ... do not bother
 }
 
-// V3 only
-// Returns offset pointing just after the string data
+// DecodeZString offset pointing just after the string data
 func (zm *ZMachine) DecodeZString(startOffset uint32) uint32 {
 	done := false
 	zchars := []uint8{}
