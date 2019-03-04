@@ -1,6 +1,9 @@
 package main
 
-import "io/ioutil"
+import (
+	"io/ioutil"
+	"os"
+)
 
 func main() {
 	buffer, err := ioutil.ReadFile("zork1.dat")
@@ -11,12 +14,18 @@ func main() {
 	var header ZHeader
 	header.read(buffer)
 
-	if header.version != 3 {
+	if header.Version != 3 {
 		panic("Only Version 3 files supported")
 	}
 
-	zm := New(buffer, header)
-	for !zm.done {
+	var zm *ZMachine
+	if save, err := os.Open("save.bin"); err == nil {
+		zm, _ = Load(save)
+	} else {
+		zm = New(buffer, header)
+	}
+
+	for !zm.Done {
 		zm.InterpretInstruction()
 	}
 }
